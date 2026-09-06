@@ -50,12 +50,6 @@ def build_question_set(coco, image_ids, cooccurrence, seed):
                            "question": f"Is there a {present_cat} in this image?",
                            "question_type": "present", "ground_truth": "yes"})
 
-        categories_not_in_image = [c for c in all_categories if c not in categories_list]
-        random_cat = categories_not_in_image[rng.integers(len(categories_not_in_image))]
-        questions.append({"image_id": img_id, "category": random_cat,
-                           "question": f"Is there a {random_cat} in this image?",
-                           "question_type": "absent_random", "ground_truth": "no"})
-
         best_value = -1
         adversary_category = None
         for key, value in cooccurrence.items():
@@ -68,10 +62,19 @@ def build_question_set(coco, image_ids, cooccurrence, seed):
             if value > best_value:
                 best_value = value
                 adversary_category = absent_side
+        
 
         questions.append({"image_id": img_id, "category": adversary_category,
                            "question": f"Is there a {adversary_category} in this image?",
                            "question_type": "absent_adversarial", "ground_truth": "no"})
+        for c in all_categories:
+            if c not in categories_list and c not in adversary_category:
+                categories_not_in_image = c
+        
+        random_cat = categories_not_in_image[rng.integers(len(categories_not_in_image))]
+        questions.append({"image_id": img_id, "category": random_cat,
+                           "question": f"Is there a {random_cat} in this image?",
+                           "question_type": "absent_random", "ground_truth": "no"})
 
     return questions
 
