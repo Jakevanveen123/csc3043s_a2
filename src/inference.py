@@ -3,6 +3,7 @@ from PIL import Image
 import os
 from transformers import AutoProcessor, AutoModelForImageTextToText
 from transformers.image_utils import load_image
+import pickle
 
 DEVICE = "mps" if torch.backends.mps.is_available() else "cpu"
 
@@ -42,9 +43,18 @@ def run_single_example(model, processor, image, question: str) -> InferenceResul
     prompt = processor.apply_chat_template(messages, add_generation_prompt=True)
     inputs = processor(text=prompt, images=[image], return_tensors="pt")
     inputs = inputs.to(DEVICE)
-
-    generated_ids = model.generate(**inputs, max_new_tokens=10)
     answer_start = inputs["input_ids"].shape[1]
+
+    with torch.no_grad():
+        gen_out = model.generate(
+            **inputs,
+            max_new_tokens=10,
+            output_scores=True,
+            output_hidden_states=True,
+            return_dict_in_generate=True,
+        )
+
+    generated_ids = gen_out.sequences
     answer_ids = generated_ids[0, answer_start:]
     generated_text = processor.tokenizer.decode(answer_ids, skip_special_tokens=True)
 
@@ -56,18 +66,18 @@ def run_single_example(model, processor, image, question: str) -> InferenceResul
     else:
         parsed_answer = None
 
-    with torch.no_grad():
-        outputs = model(input_ids=generated_ids, pixel_values=inputs["pixel_values"], output_hidden_states=True)
 
-    logits = outputs.logits[0, answer_start - 1:-1]
-    probs = torch.softmax(logits, dim=-1)
+    step_scores = torch.stack(gen_out.scores, dim=1)[0]  
+    probs = torch.softmax(step_scores, dim=-1)
     token_probs = probs[range(len(answer_ids)), answer_ids]
     confidence = token_probs.mean().item()
 
+    num_layers = len(gen_out.hidden_states[0])
     hidden_states = {}
-    for layer_idx in range(len(outputs.hidden_states)):
-        layer_tensor = outputs.hidden_states[layer_idx]
-        hidden_states[layer_idx] = layer_tensor[0].cpu().numpy()
+    for layer_idx in range(num_layers):
+        parts = [gen_out.hidden_states[0][layer_idx][0]]  
+        parts += [step[layer_idx][0] for step in gen_out.hidden_states[1:]]  
+        hidden_states[layer_idx] = torch.cat(parts, dim=0).cpu().numpy()
 
     return InferenceResult(
         image_id=None,
@@ -81,9 +91,11 @@ def run_single_example(model, processor, image, question: str) -> InferenceResul
     )
 
 
-def run_inference_on_manifest(model, processor, manifest: list[dict],image_dir: str) -> list[InferenceResult]:
+def run_inference_on_manifest(model, processor, manifest, image_dir, checkpoint_path=None, checkpoint_every=25):
     results = []
-    for row in manifest:
+
+
+    for i, row in enumerate(manifest):
         image_id = int(row["image_id"])
         filename = f"{image_id:012d}.jpg"
         image = Image.open(os.path.join(image_dir, filename)).convert("RGB")
@@ -96,11 +108,15 @@ def run_inference_on_manifest(model, processor, manifest: list[dict],image_dir: 
 
         results.append(result)
 
+        if checkpoint_path and (i + 1) % checkpoint_every == 0:
+            save_results(results, checkpoint_path)
+
     return results
 
-def save_results(results: list[InferenceResult], path: str) -> None:
-    return None
+def save_results(results, path):
+    with open(path, "wb") as f:
+        pickle.dump(results, f)
 
-def load_results(path: str) -> list[InferenceResult]:
-
-    return list(1)
+def load_results(path):
+    with open(path, "rb") as f:
+        return pickle.load(f)
