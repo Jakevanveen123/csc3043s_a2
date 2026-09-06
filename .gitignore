@@ -2,3 +2,4 @@ __pycache__/
 .venv/
 
 data/instances_val2017.json/
+data/val2017/
