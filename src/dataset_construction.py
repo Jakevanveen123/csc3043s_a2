@@ -67,9 +67,11 @@ def build_question_set(coco, image_ids, cooccurrence, seed):
         questions.append({"image_id": img_id, "category": adversary_category,
                            "question": f"Is there a {adversary_category} in this image?",
                            "question_type": "absent_adversarial", "ground_truth": "no"})
+
+        categories_not_in_image = []
         for c in all_categories:
             if c not in categories_list and c not in adversary_category:
-                categories_not_in_image = c
+                categories_not_in_image.append(c)
         
         random_cat = categories_not_in_image[rng.integers(len(categories_not_in_image))]
         questions.append({"image_id": img_id, "category": random_cat,
