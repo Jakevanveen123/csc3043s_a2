@@ -1,5 +1,6 @@
 import torch
 from PIL import Image
+import os
 from transformers import AutoProcessor, AutoModelForImageTextToText
 from transformers.image_utils import load_image
 
@@ -81,7 +82,21 @@ def run_single_example(model, processor, image, question: str) -> InferenceResul
 
 
 def run_inference_on_manifest(model, processor, manifest: list[dict],image_dir: str) -> list[InferenceResult]:
-    return list(1)
+    results = []
+    for row in manifest:
+        image_id = int(row["image_id"])
+        filename = f"{image_id:012d}.jpg"
+        image = Image.open(os.path.join(image_dir, filename)).convert("RGB")
+
+        result = run_single_example(model, processor, image, row["question"])
+        result.image_id = image_id
+        result.category = row["category"]
+        result.question_type = row["question_type"]
+        result.ground_truth = row["ground_truth"] == "yes"
+
+        results.append(result)
+
+    return results
 
 def save_results(results: list[InferenceResult], path: str) -> None:
     return None

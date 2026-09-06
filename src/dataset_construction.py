@@ -52,16 +52,22 @@ def build_question_set(coco, image_ids, cooccurrence, seed):
 
         best_value = -1
         adversary_category = None
+        best_present_partner = None
         for key, value in cooccurrence.items():
             if key[0] in categories_list and key[1] not in categories_list:
                 absent_side = key[1]
+                present_side = key[0]
             elif key[1] in categories_list and key[0] not in categories_list:
                 absent_side = key[0]
+                present_side = key[1]
             else:
                 continue
             if value > best_value:
                 best_value = value
                 adversary_category = absent_side
+                best_present_partner = present_side
+
+        print(img_id, best_present_partner, adversary_category, best_value)
         
 
         questions.append({"image_id": img_id, "category": adversary_category,
