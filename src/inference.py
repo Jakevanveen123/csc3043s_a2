@@ -19,7 +19,7 @@ class InferenceResult:
         self.hidden_states = hidden_states
 
 def load_model():
-    processor = AutoProcessor.from_pretrained("HuggingFaceTB/SmolVLM-256M-Instruct",size={"longest_edge": 512},)
+    processor = AutoProcessor.from_pretrained("HuggingFaceTB/SmolVLM-256M-Instruct")
     model = AutoModelForImageTextToText.from_pretrained(
         "HuggingFaceTB/SmolVLM-256M-Instruct",
         torch_dtype=torch.float32,
