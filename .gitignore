@@ -3,3 +3,4 @@ __pycache__/
 
 data/instances_val2017.json/
 data/val2017/
+data/inference_results.pkl/

@@ -19,7 +19,7 @@ class InferenceResult:
         self.hidden_states = hidden_states
 
 def load_model():
-    processor = AutoProcessor.from_pretrained("HuggingFaceTB/SmolVLM-256M-Instruct")
+    processor = AutoProcessor.from_pretrained("HuggingFaceTB/SmolVLM-256M-Instruct",size={"longest_edge": 512},)
     model = AutoModelForImageTextToText.from_pretrained(
         "HuggingFaceTB/SmolVLM-256M-Instruct",
         torch_dtype=torch.float32,
@@ -77,7 +77,7 @@ def run_single_example(model, processor, image, question: str) -> InferenceResul
     for layer_idx in range(num_layers):
         parts = [gen_out.hidden_states[0][layer_idx][0]]  
         parts += [step[layer_idx][0] for step in gen_out.hidden_states[1:]]  
-        hidden_states[layer_idx] = torch.cat(parts, dim=0).cpu().numpy()
+        hidden_states[layer_idx] = torch.cat(parts, dim=0).cpu().numpy().astype("float16")
 
     return InferenceResult(
         image_id=None,
