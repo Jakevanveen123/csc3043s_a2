@@ -23,7 +23,7 @@ def load_model():
     model = AutoModelForImageTextToText.from_pretrained(
         "HuggingFaceTB/SmolVLM-256M-Instruct",
         torch_dtype=torch.float32,
-        _attn_implementation="flash_attention_2" if DEVICE == "cuda" else "eager",
+        _attn_implementation="sdpa" if DEVICE == "cuda" else "eager",
     ).to(DEVICE)
 
     return model, processor
