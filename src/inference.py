@@ -93,11 +93,23 @@ def run_single_example(model, processor, image, question: str) -> InferenceResul
 
 
 def run_inference_on_manifest(model, processor, manifest, image_dir, checkpoint_path=None, checkpoint_every=25):
+    completed = set()
+    if checkpoint_path and os.path.exists(checkpoint_path):
+        with open(checkpoint_path, "rb") as f:
+            while True:
+                try:
+                    result = pickle.load(f)
+                except EOFError:
+                    break
+                completed.add((result.image_id, result.question_type))
+
     results = []
     start = time.time()
 
     for i, row in enumerate(manifest):
         image_id = int(row["image_id"])
+        if (image_id, row["question_type"]) in completed:
+            continue
         filename = f"{image_id:012d}.jpg"
         image = Image.open(os.path.join(image_dir, filename)).convert("RGB")
 
