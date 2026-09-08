@@ -4,6 +4,7 @@ import os
 from transformers import AutoProcessor, AutoModelForImageTextToText
 from transformers.image_utils import load_image
 import pickle
+import time
 
 DEVICE = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
 
@@ -93,7 +94,7 @@ def run_single_example(model, processor, image, question: str) -> InferenceResul
 
 def run_inference_on_manifest(model, processor, manifest, image_dir, checkpoint_path=None, checkpoint_every=25):
     results = []
-
+    start = time.time()
 
     for i, row in enumerate(manifest):
         image_id = int(row["image_id"])
@@ -108,8 +109,13 @@ def run_inference_on_manifest(model, processor, manifest, image_dir, checkpoint_
 
         results.append(result)
 
-        if checkpoint_path and (i + 1) % checkpoint_every == 0:
-            save_results(results, checkpoint_path)
+        if (i + 1) % checkpoint_every == 0:
+            elapsed = time.time() - start
+            rate = (i + 1) / elapsed
+            remaining = (len(manifest) - (i + 1)) / rate
+            print(f"{i + 1}/{len(manifest)} done, {elapsed / 60:.1f} min elapsed, {remaining / 60:.1f} min remaining")
+            if checkpoint_path:
+                save_results(results, checkpoint_path)
 
     return results
 
