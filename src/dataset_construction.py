@@ -50,7 +50,7 @@ def build_question_set(coco, image_ids, cooccurrence, seed):
 
         present_cat = categories_list[rng.integers(len(categories_list))]
         questions.append({"image_id": img_id, "category": present_cat,
-                           "question": f"Is there a {present_cat} in this image?",
+                           "question": f"Is there a {present_cat} in this image? Answer yes or no.",
                            "question_type": "present", "ground_truth": "yes"})
 
         best_value = -1
@@ -74,7 +74,7 @@ def build_question_set(coco, image_ids, cooccurrence, seed):
         
 
         questions.append({"image_id": img_id, "category": adversary_category,
-                           "question": f"Is there a {adversary_category} in this image?",
+                           "question": f"Is there a {adversary_category} in this image? Answer yes or no.",
                            "question_type": "absent_adversarial", "ground_truth": "no"})
 
         categories_not_in_image = []
@@ -84,7 +84,7 @@ def build_question_set(coco, image_ids, cooccurrence, seed):
         
         random_cat = categories_not_in_image[rng.integers(len(categories_not_in_image))]
         questions.append({"image_id": img_id, "category": random_cat,
-                           "question": f"Is there a {random_cat} in this image?",
+                           "question": f"Is there a {random_cat} in this image? Answer yes or no.",
                            "question_type": "absent_random", "ground_truth": "no"})
 
     return questions
