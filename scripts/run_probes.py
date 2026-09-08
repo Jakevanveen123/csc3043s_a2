@@ -22,8 +22,7 @@ def load_layer(path, layer):
             results.append(r)
     return results
 
-with open(results_path, "rb") as f:
-    num_layers = len(pickle.load(f).hidden_states)
+LAYERS = [0, 5, 10, 15, 20, 21, 25, 30]
  
 split_path = os.path.join(data_dir, "train_val_split.npz")
 if os.path.exists(split_path):
@@ -36,7 +35,7 @@ else:
  
  
 records = []
-for layer in range(num_layers):
+for layer in LAYERS:
     results = load_layer(results_path, layer)
     train_results = [results[i] for i in train_indices]
     val_results = [results[i] for i in val_indices]
