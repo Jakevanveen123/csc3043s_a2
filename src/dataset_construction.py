@@ -45,6 +45,9 @@ def build_question_set(coco, image_ids, cooccurrence, seed):
             categories.add(coco.cat_id_to_name[annotation["category_id"]])
         categories_list = sorted(categories)
 
+        if len(categories_list) == 0:
+            continue
+
         present_cat = categories_list[rng.integers(len(categories_list))]
         questions.append({"image_id": img_id, "category": present_cat,
                            "question": f"Is there a {present_cat} in this image?",
