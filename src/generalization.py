@@ -1,5 +1,5 @@
 import pandas as pd
-
+import numpy as np
 def cross_category_split(results: list["InferenceResult"],train_types: list[str],test_types: list[str],val_indices: list[int],) -> tuple[list[int], list[int]]:
     val_set = set(val_indices)
 
