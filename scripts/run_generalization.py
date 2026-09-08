@@ -1,23 +1,36 @@
-import sys, os
+import sys, os, pickle
 sys.path.append(os.path.join(os.path.dirname(__file__), "../src"))
  
 import numpy as np
 import pandas as pd
  
-from inference import load_results
 from probing import build_feature_matrix, train_probe, evaluate_probe
 from generalization import cross_category_split, compare_probe_to_baseline
  
 data_dir = os.path.join(os.path.dirname(__file__), "../data")
-results = load_results(os.path.join(data_dir, "inference_results.pkl"))
+results_path = os.path.join(data_dir, "inference_results.pkl")
+
+def load_layer(path, layer):
+    results = []
+    with open(path, "rb") as f:
+        while True:
+            try:
+                r = pickle.load(f)
+            except EOFError:
+                break
+            r.hidden_states = {layer: r.hidden_states[layer]}
+            results.append(r)
+    return results
+
+probe_results = pd.read_csv(os.path.join(data_dir, "probe_results.csv"))
+best_row = probe_results.loc[probe_results["auroc"].idxmax()]
+best_layer = int(best_row["layer"])
+
+results = load_layer(results_path, best_layer)
  
 split = np.load(os.path.join(data_dir, "train_val_split.npz"))
 train_indices = split["train_indices"].tolist()
 val_indices = split["val_indices"].tolist()
- 
-probe_results = pd.read_csv(os.path.join(data_dir, "probe_results.csv"))
-best_row = probe_results.loc[probe_results["auroc"].idxmax()]
-best_layer = int(best_row["layer"])
  
 cross_train, cross_test = cross_category_split(results,["present", "absent_random"],["absent_adversarial"],val_indices,)
 cross_train_results = [results[i] for i in cross_train]
