@@ -1,0 +1,6 @@
+image_id,category,question_type,ground_truth,confidence,probe_prediction
+530836,person,absent_adversarial,0,0.9996160864830017,1
+136033,dog,absent_random,0,0.9987189173698425,1
+530836,mouse,absent_random,0,0.9996331930160522,1
+136033,chair,absent_adversarial,0,0.9984320998191833,1
+530836,bottle,present,1,0.9783399105072021,1
