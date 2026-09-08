@@ -49,7 +49,7 @@ def run_single_example(model, processor, image, question: str) -> InferenceResul
     with torch.no_grad():
         gen_out = model.generate(
             **inputs,
-            max_new_tokens=10,
+            max_new_tokens=5,
             output_scores=True,
             output_hidden_states=True,
             return_dict_in_generate=True,
@@ -116,13 +116,24 @@ def run_inference_on_manifest(model, processor, manifest, image_dir, checkpoint_
             print(f"{i + 1}/{len(manifest)} done, {elapsed / 60:.1f} min elapsed, {remaining / 60:.1f} min remaining")
             if checkpoint_path:
                 save_results(results, checkpoint_path)
+                results = []
+
+    if checkpoint_path and results:
+        save_results(results, checkpoint_path)
 
     return results
 
 def save_results(results, path):
-    with open(path, "wb") as f:
-        pickle.dump(results, f)
+    with open(path, "ab") as f:
+        for result in results:
+            pickle.dump(result, f)
 
 def load_results(path):
+    results = []
     with open(path, "rb") as f:
-        return pickle.load(f)
+        while True:
+            try:
+                results.append(pickle.load(f))
+            except EOFError:
+                break
+    return results
