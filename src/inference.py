@@ -5,7 +5,7 @@ from transformers import AutoProcessor, AutoModelForImageTextToText
 from transformers.image_utils import load_image
 import pickle
 
-DEVICE = "mps" if torch.backends.mps.is_available() else "cpu"
+DEVICE = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
 
 class InferenceResult:
     def __init__(self, image_id, category, question_type, ground_truth, generated_text, parsed_answer, confidence, hidden_states):
