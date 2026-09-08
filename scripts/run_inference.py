@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, pickle
 sys.path.append(os.path.join(os.path.dirname(__file__), "../src"))
 
 from PIL import Image
@@ -25,6 +25,34 @@ for r in results:
 
 print(results[0].hidden_states[1].shape)"""
 
-results = run_inference_on_manifest(
+"""results = run_inference_on_manifest(
     model, processor, manifest, os.path.join(data_dir, "val2017"),checkpoint_path=os.path.join(data_dir, "inference_results.pkl"),checkpoint_every=15,)
-save_results(results, os.path.join(data_dir, "inference_results.pkl"))
+save_results(results, os.path.join(data_dir, "inference_results.pkl"))"""
+
+results = []
+with open("data/inference_results.pkl", "rb") as f:
+    while True:
+        try:
+            r = pickle.load(f)
+        except EOFError:
+            break
+        r.hidden_states = None
+        results.append(r)
+
+total = len(results)
+unclear = 0
+correct = {"present": 0, "absent_random": 0, "absent_adversarial": 0}
+count = {"present": 0, "absent_random": 0, "absent_adversarial": 0}
+
+for r in results:
+    if r.parsed_answer is None:
+        unclear += 1
+        continue
+    count[r.question_type] += 1
+    if r.parsed_answer == r.ground_truth:
+        correct[r.question_type] += 1
+
+print(unclear / total)
+for qt in count:
+    print(qt, correct[qt] / count[qt])
+print(sum(correct.values()) / sum(count.values()))
