@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
  
 from probing import build_feature_matrix, train_probe, evaluate_probe
+from sklearn.metrics import roc_auc_score
 from generalization import cross_category_split, compare_probe_to_baseline
  
 data_dir = os.path.join(os.path.dirname(__file__), "../data")
@@ -65,3 +66,4 @@ confidence_predictions = (confidence_values < 0.5).astype(int)
  
 disagreements = compare_probe_to_baseline(probe_predictions, confidence_predictions, y_val, metadata)
 disagreements.to_csv(os.path.join(data_dir, "disagreements.csv"), index=False)
+print(roc_auc_score(y_val, 1 - confidence_values))

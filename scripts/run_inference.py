@@ -25,9 +25,9 @@ for r in results:
 
 print(results[0].hidden_states[1].shape)"""
 
-"""results = run_inference_on_manifest(
+results = run_inference_on_manifest(
     model, processor, manifest, os.path.join(data_dir, "val2017"),checkpoint_path=os.path.join(data_dir, "inference_results.pkl"),checkpoint_every=15,)
-save_results(results, os.path.join(data_dir, "inference_results.pkl"))"""
+save_results(results, os.path.join(data_dir, "inference_results.pkl"))
 
 results = []
 with open("data/inference_results.pkl", "rb") as f:
